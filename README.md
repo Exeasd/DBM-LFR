@@ -1,12 +1,6 @@
 <div align="center">
 
-# DBM-Warmane (3.3.5a)
-
-[![Game Version](https://img.shields.io/badge/wow-3.3.5-blue.svg)](https://github.com/Zidras/DBM-Warmane)
-[![GitHub Actions](https://github.com/Zidras/DBM-Warmane/workflows/lint/badge.svg?branch=main&event=push)](https://github.com/Zidras/DBM-Warmane/actions?query=workflow%3Alint+branch%3Amain)
-[![Twitch](https://img.shields.io/twitch/status/the_zidras?style=social)](https://www.twitch.tv/the_zidras)
-[![Discord](https://img.shields.io/discord/598993375479463946.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/CyVWDWS)
-[![PayPal](https://img.shields.io/endpoint?url=https://www.stormfx.com/img/svg/paypal.json)](https://paypal.me/zidras)
+# Fork of DBM-Warmane (3.3.5a) created by Zidras, modified to be used on LFR Server
 
 
 </div>
