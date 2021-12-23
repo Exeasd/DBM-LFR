@@ -11,23 +11,22 @@ mod:EnableModel()
 mod:RegisterEvents(
 	"SPELL_CAST_SUCCEEDED",
 	"SPELL_AURA_APPLIED_DOSE",
-	"SPELL_AURA_APPLIED",
-	"UNIT_DIED"
+	"CHAT_MSG_MONSTER_YELL",
+	"SPELL_SUMMON",
+	"SPELL_CAST_START",
+	"SPELL_DAMAGE"
 )
 
 local warnMarkSoon			= mod:NewAnnounce("WarningMarkSoon", 1, 28835, false)
 local warnMarkNow			= mod:NewAnnounce("WarningMarkNow", 2, 28835)
-local holyWrathCD     		= mod:NewCDTimer(13, 57466)
 
-local LADY_MARK = 28833
-local ZELIEK_MARK = 28835
-local BARON_MARK = 28834
-local THANE_MARK = 28832
-
-local NextLadyMark			= mod:NewNextTimer(12, LADY_MARK)
-local NextZeliekMark		= mod:NewNextTimer(12, ZELIEK_MARK)
-local NextBaronMark			= mod:NewNextTimer(10, BARON_MARK)
-local NextThaneMark			= mod:NewNextTimer(10, THANE_MARK)
+local timerBlaumeux			= mod:NewTimer(309, "TimerLadyBlaumeuxEnrage", 72143)
+local timerZeliek			= mod:NewTimer(309, "TimerSirZeliekEnrage", 72143)
+local timerKorthazz			= mod:NewTimer(309, "TimerThaneKorthazzEnrage", 72143)
+local timerRivendare		= mod:NewTimer(309, "TimerBaronRivendareEnrage", 72143)
+local timerVoidZone			= mod:NewCDTimer(12, 36119)
+local timerMeteor			= mod:NewCDTimer(12, 28884)
+local timerHolyWrath		= mod:NewCDTimer(12, 57466)
 
 local specWarnMarkOnPlayer	= mod:NewSpecialWarning("SpecialWarningMarkOnPlayer", nil, false, true)
 
@@ -44,16 +43,10 @@ mod:SetBossHealthInfo(
 local markCounter = 0
 
 function mod:OnCombatStart(delay)
-	self.combat_start = GetTime()
+	timerVoidZone:Start(16 - delay)
 	markCounter = 0
-	NextLadyMark:Start(34)
-	NextZeliekMark:Start(34)
-	NextBaronMark:Start(34)
-	NextThaneMark:Start(34)
-
-	if self.Options.RangeFrame then
-		DBM.RangeCheck:Show(12)
-	end
+	timerBlaumeux:Start(-delay)
+	timerRivendare:Start(-delay)
 end
 
 function mod:OnCombatEnd()
@@ -63,58 +56,71 @@ function mod:OnCombatEnd()
 end
 
 local markSpam = 0
-
-function mod:SPELL_AURA_APPLIED(args)
-	self:DoMarks(args)
-end
-
-function mod:DoMarks(args)
-	local wasMark = false
-	if args:IsSpellID(LADY_MARK) then
-		wasMark = true
-		NextLadyMark:Start(12)
-	elseif args:IsSpellID(ZELIEK_MARK) then
-		wasMark = true
-		NextZeliekMark:Start(12)
-	elseif args:IsSpellID(BARON_MARK) then
-		wasMark = true
-		NextBaronMark:Start(10)
-	elseif args:IsSpellID(THANE_MARK) then
-		wasMark = true
-		NextThaneMark:Start(10)
-	end
-
-	if wasMark and (GetTime() - markSpam) > 5 then
+function mod:SPELL_CAST_SUCCESS(args)
+	if args:IsSpellID(28832, 28833, 28834, 28835) and (GetTime() - markSpam) > 5 then
 		markSpam = GetTime()
 		markCounter = markCounter + 1
 	end
-
-	return wasMark
 end
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args:IsSpellID(28883, 53638, 57466, 32455) then
-		holyWrathCD:Start()
+function mod:CHAT_MSG_MONSTER_YELL(msg)
+	if msg:find(L.Yell1) then
+		timerKorthazz:Start()
+		timerRivendare:Stop()
+		timerMeteor:Start(30)
+	elseif msg:find(L.Yell2) then
+		if mod:IsDifficulty("heroic10")	then
+			timerVoidZone:Stop()
+		end
+		if self.Options.RangeFrame then
+			DBM.RangeCheck:Show(12)
+		end
+		timerZeliek:Start()
+		timerHolyWrath:Start()
+		timerBlaumeux:Stop()
+	elseif msg:find(L.Yell3) then
+		if self.Options.RangeFrame then
+			DBM.RangeCheck:Hide()
+		end
+		timerZeliek:Stop()
+		timerHolyWrath:Stop()
+	elseif msg:find(L.Yell4) then
+		timerKorthazz:Stop()
+		timerMeteor:Stop()
 	end
 end
 
 function mod:SPELL_AURA_APPLIED_DOSE(args)
-	if self:DoMarks(args) and args:IsPlayer() then
-		if args.amount >= 3 then
+	if args:IsSpellID(28832, 28833, 28834, 28835) and args:IsPlayer() then
+		if args.amount >= 4 then
 			specWarnMarkOnPlayer:Show(args.spellName, args.amount)
 		end
 	end
 end
 
-function mod:UNIT_DIED(args)
-	local cid = self:GetCIDFromGUID(args.destGUID)
-	if cid == 16064 then
-		NextZeliekMark:Cancel()
-	elseif cid == 30549 then
-		NextBaronMark:Cancel()
-	elseif cid == 16065 then
-		NextLadyMark:Cancel()
-	elseif cid == 16063 then
-		NextZeliekMark:Cancel()
+function mod:SPELL_SUMMON(args)
+	if args:IsSpellID(28863, 57463) then
+		timerVoidZone:Start()
+	end
+end
+
+function mod:SPELL_CAST_START(args)
+	if args:IsSpellID(28884, 57467) then
+		timerMeteor:Start()
+	end
+end
+
+function mod:SPELL_DAMAGE(_, _, _, _, _, _, spellId)
+	if (spellId == 28883 or spellId == 57466) then
+		if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+			timerHolyWrath:Start()
+		end
+	end
+end
+
+
+function mod:OnCombatEnd()
+	if self.Options.RangeFrame then
+		DBM.RangeCheck:Hide()
 	end
 end

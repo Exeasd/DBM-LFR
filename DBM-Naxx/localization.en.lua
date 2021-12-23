@@ -21,7 +21,10 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
-	ArachnophobiaTimer	= "Arachnophobia"
+	ArachnophobiaTimer	= "Arachnophobia",
+	Yell1 				= "There is no way out.",
+	Yell2 				= "Just a little taste...",
+	Yell3 				= "Yes, run! It makes the blood pump faster!"
 })
 
 ----------------------------
@@ -41,6 +44,13 @@ L:SetWarningLocalization({
 L:SetOptionLocalization({
 	WarningEmbraceExpire	= "Show pre-warning for Widow's Embrace fade",
 	WarningEmbraceExpired	= "Show warning for Widow's Embrace fade"
+})
+
+L:SetMiscLocalization({
+	Yell1 	= "Run while you still can!",
+	Yell2 	= "You cannot hide from me!",
+	Yell3 	= "Kneel before me, worm!",
+	Yell4	= "Slay them in the master's name!"
 })
 
 ---------------
@@ -68,6 +78,7 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
+	YellWebWrap	= "I'm wrapped! Help me!",
 	ArachnophobiaTimer	= "Arachnophobia"
 })
 
@@ -81,20 +92,31 @@ L:SetGeneralLocalization({
 })
 
 L:SetWarningLocalization({
-	WarningTeleportNow	= "Teleported",
-	WarningTeleportSoon	= "Teleport in 20 seconds"
+	WarningTeleportNow				= "Teleported",
+	WarningTeleportSoon				= "Teleport in 20 seconds",
+	SpecialWarningEnragedSkeleton	= "Enraged Skeleton targets you",
+	WarningBlinkSoon				= "Threat reset soon"
+})
+L:SetMiscLocalization({
+	WarningYellEnragedSkeleton		= "I'm targeted by Enraged Skeleton!"
 })
 
 L:SetTimerLocalization({
 	TimerTeleport		= "Teleport",
-	TimerTeleportBack	= "Teleport back"
+	TimerTeleportBack	= "Teleport back",
+	TimerBlink			= "Blink"
 })
 
 L:SetOptionLocalization({
-	WarningTeleportNow	= "Show warning for Teleport",
-	WarningTeleportSoon	= "Show pre-warning for Teleport",
-	TimerTeleport		= "Show timer for Teleport",
-	TimerTeleportBack	= "Show timer for Teleport back"
+	WarningTeleportNow				= "Show warning for Teleport",
+	WarningTeleportSoon				= "Show pre-warning for Teleport",
+	WarningEnragedSkeleton			= "Yell on being targeted by Enraged Skeleton",
+	WarningBlinkSoon				= "Show warning for Blink",
+	TimerBlink						= "Show timer for Blink",
+	TimerTeleport					= "Show timer for Teleport",
+	TimerTeleportBack				= "Show timer for Teleport back",
+	SpecialWarningEnragedSkeleton	= "Show special warning when you are targeted by Enraged Skeleton",
+	SetIconOnEnragedSkeletonTarget	= "Set icon on Enraged Skeleton target"
 })
 
 --------------------------
@@ -131,14 +153,18 @@ L:SetGeneralLocalization({
 })
 
 L:SetWarningLocalization({
-	WarningHealSoon	= "Healing possible in 3 seconds",
-	WarningHealNow	= "Heal now"
+	WarningHealSoon			= "Healing possible in 3 seconds",
+	WarningHealNow			= "Heal now",
+	WarningHealthySporeSoon = "Healthy spore spawns in 3 seconds",
+	WarningHealthySporeNow 	= "Healthy spore spawned"
 })
 
 L:SetOptionLocalization({
-	WarningHealSoon		= "Show pre-warning for 3-second healing window",
-	WarningHealNow		= "Show warning for 3-second healing window",
-	SporeDamageAlert	= "Send whisper to and announce to raid players who damage spores\n(requires announce to be enabled and leader/promoted status)"
+	WarningHealSoon			= "Show pre-warning for 3-second healing window",
+	WarningHealNow			= "Show warning for 3-second healing window",
+	WarningHealthySporeSoon	= "Show pre-warning for 3-second before Healthy spore spawns",
+	WarningHealthySporeNow	= "Show warning when Healthy spore spawns",
+	SporeDamageAlert		= "Send whisper to and announce to raid players who damage spores\n(requires announce to be enabled and leader/promoted status)"
 })
 
 -----------------
@@ -152,7 +178,8 @@ L:SetGeneralLocalization({
 
 L:SetOptionLocalization({
 	RemoveHealthBuffsOnCombatStart	= "Remove HP buffs at start of the encounter",
-	WarningHateful	= "Post Hateful Strike targets to raid chat\n(requires announce to be enabled and leader/promoted status)"
+	WarningHateful	= "Post Hateful Strike targets to raid chat\n(requires announce to be enabled and leader/promoted status)",
+	SetIconOnGrievousThrowTarget 	= "Set icons on Grievous Throw targets"
 })
 
 L:SetMiscLocalization({
@@ -172,11 +199,13 @@ L:SetGeneralLocalization({
 
 L:SetOptionLocalization({
 	SpecialWarningInjection		= "Show special warning when you are affected by Mutating Injection",
-	SetIconOnInjectionTarget	= "Set icons on Mutating Injection targets"
+	SetIconOnInjectionTarget	= "Set icons on Mutating Injection targets",
+	WarningFalloutSlime			= "Show warning when Fallout Slime spawns"
 })
 
 L:SetWarningLocalization({
-	SpecialWarningInjection	= "Mutating Injection on you"
+	SpecialWarningInjection	= "Mutating Injection on you",
+	WarningFalloutSlime		= "Fallout Slime spawned"
 })
 
 L:SetTimerLocalization({
@@ -189,6 +218,15 @@ L = DBM:GetModLocalization("Gluth")
 
 L:SetGeneralLocalization({
 	name = "Gluth"
+})
+
+L:SetOptionLocalization({
+	SpecialWarningFleshRip	= "Show special warning when you are affected by Flesh Rip",
+	SetIconOnFleshRipTarget = "Set icons on Flesh Rip targets"
+})
+
+L:SetWarningLocalization({
+	SpecialWarningFleshRip	= "Flesh Rip on you"
 })
 
 ----------------
@@ -215,8 +253,7 @@ L:SetOptionLocalization({
 	WarningChargeNotChanged	= "Show special warning when your polarity did not change",
 	ArrowsEnabled			= "Show arrows (normal \"2 camp\" strategy)",
 	ArrowsRightLeft			= "Show left/right arrows for the \"4 camp\" strategy (show left arrow if polarity changed, right if not)",
-	ArrowsInverse			= "Inverse \"4 camp\" strategy (show right arrow if polarity changed, left if not)",
-	SoundWarnCountingShift	= "Play a 5 second audio countdown for Polarity Shift"
+	ArrowsInverse			= "Inverse \"4 camp\" strategy (show right arrow if polarity changed, left if not)"
 })
 
 L:SetWarningLocalization({
@@ -264,15 +301,19 @@ L:SetGeneralLocalization({
 L:SetOptionLocalization({
 	TimerWave			= "Show timer for next wave",
 	TimerPhase2			= "Show timer for Phase 2",
+	TimerTeleport		= "Show timer for Teleport",
 	WarningWaveSoon		= "Show pre-warning for wave",
 	WarningWaveSpawned	= "Show warning for wave spawned",
 	WarningRiderDown	= "Show warning when an Unrelenting Rider dies",
-	WarningKnightDown	= "Show warning when an Unrelenting Death Knight dies"
+	WarningKnightDown	= "Show warning when an Unrelenting Death Knight dies",
+	WarningTraineeDown	= "Show warning when an Unrelenting Trainee dies",
+	WarningTeleportSoon	= "Show pre-warning for Teleport"
 })
 
 L:SetTimerLocalization({
 	TimerWave	= "Wave %d",
-	TimerPhase2	= "Phase 2"
+	TimerPhase2	= "Phase 2",
+	TimerTeleport	= "Teleport"
 })
 
 L:SetWarningLocalization({
@@ -280,7 +321,9 @@ L:SetWarningLocalization({
 	WarningWaveSpawned	= "Wave %d: %s spawned",
 	WarningRiderDown	= "Rider down",
 	WarningKnightDown	= "Knight down",
-	WarningPhase2		= "Phase 2"
+	WarningTraineeDown	= "Trainee down",
+	WarningPhase2		= "Phase 2",
+	WarningTeleportSoon	= "Teleport in 3 seconds"
 })
 
 L:SetMiscLocalization({
@@ -305,10 +348,19 @@ L:SetGeneralLocalization({
 L:SetOptionLocalization({
 	WarningMarkSoon				= "Show pre-warning for Mark",
 	WarningMarkNow				= "Show warning for Mark",
-	SpecialWarningMarkOnPlayer	= "Show special warning when you are affected by more than 4 marks"
+	SpecialWarningMarkOnPlayer	= "Show special warning when you are affected by more than 4 marks",
+	TimerLadyBlaumeuxEnrage		= "Show Lady Blaumeux Enrage Timer",
+	TimerSirZeliekEnrage		= "Show Sir Zeliek Enrage Timer",
+	TimerThaneKorthazzEnrage	= "Show Thane Korthazz Enrage Timer",
+	TimerBaronRivendareEnrage	= "Show Baron Rivendare Enrage Timer",
+	ShowRange					= "Show Range frame for Sir Zeliek Holy Wrath Chain range"
 })
 
 L:SetTimerLocalization({
+	TimerLadyBlaumeuxEnrage		= "Lady Blaumeux Enrage",
+	TimerSirZeliekEnrage		= "Sir Zeliek Enrage",
+	TimerThaneKorthazzEnrage	= "Thane Korthazz Enrage",
+	TimerBaronRivendareEnrage	= "Baron Rivendare Enrage"
 })
 
 L:SetWarningLocalization({
@@ -321,7 +373,11 @@ L:SetMiscLocalization({
 	Korthazz	= "Thane Korth'azz",
 	Rivendare	= "Baron Rivendare",
 	Blaumeux	= "Lady Blaumeux",
-	Zeliek		= "Sir Zeliek"
+	Zeliek		= "Sir Zeliek",
+	Yell1 		= "Death... will not stop me.",
+	Yell2 		= "Touche...",
+	Yell3 		= "It is... as it should be.",
+	Yell4 		= "What a bloody waste this is!"
 })
 
 -----------------
@@ -342,6 +398,7 @@ L:SetOptionLocalization({
 	TimerIceBlast		= "Show timer for Frost Breath",
 	WarningDeepBreath	= "Show special warning for Frost Breath",
 	WarningIceblock		= "Yell on Ice Block",
+	WarningFrozenOrb	= "Show warning for Frozen Orb",
 	SpecWarnSapphLow 	= "Special warning for 10% execute phase (cancel air phase)"
 })
 
@@ -355,12 +412,14 @@ L:SetWarningLocalization({
 	WarningAirPhaseNow	= "Air phase",
 	WarningLanded		= "Sapphiron landed",
 	WarningDeepBreath	= "Frost Breath",
+	WarningFrozenOrb	= "Frozen Orb",
 	SpecWarnSapphLow 	= "Sapphiron can't fly!"
 })
 
 L:SetTimerLocalization({
 	TimerAir		= "Air phase",
 	TimerLanding	= "Landing",
+	TimerFrozenOrb	= "Frozen Orb",
 	TimerIceBlast	= "Frost Breath"
 })
 
@@ -391,6 +450,9 @@ L:SetMiscLocalization({
 	Yell		= "Minions, servants, soldiers of the cold dark! Obey the call of Kel'Thuzad!",
 	YellMC1		= "Your soul is bound to me, now!",
 	YellMC2		= "There will be no escape!",
+	YellP3		= "Master, I require aid!",
+	YellP4		= "The frozen heart of Icecrown awaits....",
+	Corpse		= "Burning Corpse",
 	setMissing	= "ATTENTION! DBM automatic weapon unequipping/equipping will not work until you create a equipment set named pve"
 })
 
@@ -403,5 +465,6 @@ L:SetWarningLocalization({
 
 L:SetTimerLocalization({
 	TimerPhase2	= "Phase 2",
-	MCImminent	= "MC Imminent! (20s)"
+	MCImminent	= "MC Imminent! (20s)",
+	IncCorpse 	= "Burning Corpse soon"
 })

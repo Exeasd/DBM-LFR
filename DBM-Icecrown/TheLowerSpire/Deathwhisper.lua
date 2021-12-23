@@ -104,9 +104,7 @@ function mod:EqW()
 	if self.Options.EqUneqWeapons and not self.Options.BlockWeapons and self:IsEquipmentSetAvailable("pve") then
 		DBM:Debug("trying to equip pve",1)
 		UseEquipmentSet("pve")
-		if not self:IsTank() then
-			CancelUnitBuff("player", (GetSpellInfo(25780))) -- Righteous Fury
-		end
+		CancelUnitBuff("player", (GetSpellInfo(25780))) -- Righteous Fury
 	end
 end
 

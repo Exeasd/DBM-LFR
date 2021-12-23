@@ -48,8 +48,7 @@ local timerTargetSwitch			= mod:NewTimer(47, "TimerTargetSwitch", 70952)	-- ever
 local timerDarkNucleusCD		= mod:NewCDTimer(10, 71943, nil, false, nil, 5)	-- usually every 10 seconds but sometimes more
 local timerConjureFlamesCD		= mod:NewCDTimer(20, 71718, nil, nil, nil, 3) -- every 20-30 seconds but never more often than every 20sec
 local timerGlitteringSparksCD	= mod:NewCDTimer(20, 71807, nil, nil, nil, 2) -- This is pretty nasty on heroic
-local timerShockVortex			= mod:NewCDTimer(20, 72037, nil, nil, nil, 3, nil, nil, true) -- Seen a range from 16,8 - 21,6 (Warmane: from 2 logs: 19-22s). Added "keep" arg
-local timerEmpoweredShockVortex	= mod:NewCDTimer(30, 72039, nil, nil, nil, 3, nil, DBM_CORE_L.DEADLY_ICON, true)  -- Added "keep" arg
+local timerShockVortex			= mod:NewCDTimer(15, 72037, nil, nil, nil, 3) -- Seen a range from 16,8 - 21,6
 local timerKineticBombCD		= mod:NewCDTimer(18, 72053, nil, "Ranged", nil, 1) -- Might need tweaking :23
 local timerShadowPrison			= mod:NewBuffFadesTimer(10, 72999, nil, nil, nil, 5) -- Hard mode debuff
 
@@ -79,7 +78,7 @@ function mod:OnCombatStart(delay)
 	warnTargetSwitchSoon:Schedule(42-delay)
 	warnTargetSwitchSoon:ScheduleVoice(42, "swapsoon")
 	timerTargetSwitch:Start(-delay)
-	timerEmpoweredShockVortex:Start(15-delay) -- Warmane: random 15-20
+	timerShockVortex:Start(-delay)
 	timerKineticBombCD:Start(20-delay)
 	activePrince = nil
 	table.wipe(glitteringSparksTargets)
@@ -149,7 +148,7 @@ function mod:SPELL_CAST_START(args)
 		if not self.Options.Sound72039 then
 			specWarnEmpoweredShockV:Play("scatter")
 		end
-		timerEmpoweredShockVortex:Start()
+		timerShockVortex:Start(30)
 		soundEmpoweredShockV:Play("Interface\\AddOns\\DBM-Core\\sounds\\RaidAbilities\\EmpoweredVortex.mp3")
 	elseif args.spellId == 71718 then	-- Conjure Flames
 		warnConjureFlames:Show()
@@ -168,31 +167,15 @@ function mod:SPELL_AURA_APPLIED(args)
 			warnTargetSwitchSoon:Schedule(42)
 			warnTargetSwitchSoon:ScheduleVoice(42, "swapsoon")
 			timerTargetSwitch:Start()
-			if not timerEmpoweredShockVortex:IsStarted() then -- avoid overwriting first vortex
-				if timerShockVortex:IsStarted() then
-					timerEmpoweredShockVortex:Start(timerShockVortex:GetRemaining())
-				else
-					timerEmpoweredShockVortex:Start(20) -- random
-				end
-			end
-			timerShockVortex:Cancel()
-			if self.Options.RangeFrame then
-				DBM.RangeCheck:Show(12)
-			end
+		if self.Options.RangeFrame then
+			DBM.RangeCheck:Show(12)
 		end
+	end
 	elseif args.spellId == 70981 and self:IsInCombat() then
 		warnTargetSwitch:Show(L.Keleseth)
 		warnTargetSwitchSoon:Schedule(42)
 		warnTargetSwitchSoon:ScheduleVoice(42, "swapsoon")
 		timerTargetSwitch:Start()
-		if not timerShockVortex:IsStarted() then
-			if timerEmpoweredShockVortex:IsStarted() then
-				timerShockVortex:Start(timerEmpoweredShockVortex:GetRemaining())
-				timerEmpoweredShockVortex:Cancel()
-			else
-				timerShockVortex:Start()
-			end
-		end
 		activePrince = args.destGUID
 		if self.Options.RangeFrame then
 			self:ScheduleMethod(4.5, "HideRange")--delay hiding range frame for a few seconds after change incase valanaar got a last second vortex cast off
@@ -202,14 +185,6 @@ function mod:SPELL_AURA_APPLIED(args)
 		warnTargetSwitchSoon:Schedule(42)
 		warnTargetSwitchSoon:ScheduleVoice(42, "swapsoon")
 		timerTargetSwitch:Start()
-		if not timerShockVortex:IsStarted() then
-			if timerEmpoweredShockVortex:IsStarted() then
-				timerShockVortex:Start(timerEmpoweredShockVortex:GetRemaining())
-				timerEmpoweredShockVortex:Cancel()
-			else
-				timerShockVortex:Start()
-			end
-		end
 		activePrince = args.destGUID
 		if self.Options.RangeFrame then
 			self:ScheduleMethod(4.5, "HideRange")--delay hiding range frame for a few seconds after change incase valanaar got a last second vortex cast off

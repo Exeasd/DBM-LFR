@@ -17,6 +17,7 @@ mod:RegisterEvents(
 
 local warnInjection		= mod:NewTargetAnnounce(28169, 2)
 local warnCloud			= mod:NewSpellAnnounce(28240, 2)
+local warnFalloutSlime	= mod:NewAnnounce("WarningFalloutSlime", 4, 54364)
 
 local specWarnInjection	= mod:NewSpecialWarning("SpecialWarningInjection")
 local yellInjection		= mod:NewYellMe(28169, nil, false)
@@ -84,8 +85,15 @@ end
 
 function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(28240) then
+		if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+			timerCloud:Start(10)
+			soundCloud:Schedule(10-3)
+		else
+			timerCloud:Start()
+			soundCloud:Schedule(15-3)
+		end
 		warnCloud:Show()
-		timerCloud:Start()
-		soundCloud:Schedule(15-3)
+	elseif args:IsSpellID(54364, 28157) then
+		warnFalloutSlime:Show()
 	end
 end

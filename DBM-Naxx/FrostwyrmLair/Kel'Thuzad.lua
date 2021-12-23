@@ -16,6 +16,7 @@ mod:RegisterEvents(
 	"SPELL_AURA_REMOVED",
 	"SPELL_CAST_SUCCESS",
 	"UNIT_HEALTH",
+	"UNIT_DIED",
 	"CHAT_MSG_MONSTER_YELL",
 	"SPELL_SUMMON"
 )
@@ -31,18 +32,21 @@ local warnMana				= mod:NewTargetAnnounce(27819, 2)
 local warnManaClose   		= mod:NewSpecialWarning("manaNear")
 local warnChainsTargets		= mod:NewTargetAnnounce(28410, 2)
 local warnMindControl 		= mod:NewSoonAnnounce(28410, 4)
+local warnCorpse			= mod:NewSoonAnnounce(59216, 4)
 
 local specwarnP2Soon		= mod:NewSpecialWarning("specwarnP2Soon")
 local specWarnManaBomb		= mod:NewSpecialWarningMoveAway(27819, nil, nil, nil, 1, 2)
 local yellManaBomb			= mod:NewShortYell(27819)
 
+
 local blastTimer			= mod:NewBuffActiveTimer(4, 27808)
 local timerPhase2			= mod:NewTimer(227, "TimerPhase2")
-local mindControlCD 		= mod:NewNextTimer(60, 28410)
-local frostBlastCD   		= mod:NewCDTimer(25, 27808)
+local mindControlCD 		= mod:NewNextTimer(90, 28410)
+local frostBlastCD   		= mod:NewCDTimer(45, 27808)
 local fissureCD  			= mod:NewCDTimer(14, 27810)
 
 local timerPossibleMC		= mod:NewTimer(20, "MCImminent", 28410)
+local timerCorpse			= mod:NewTimer(44, "IncCorpse")
 
 mod:AddBoolOption("BlastAlarm", true)
 mod:AddBoolOption("ShowRange", true)
@@ -59,7 +63,8 @@ if mod.Options.EqUneqWeaponsKT and (mod:IsDifficulty("heroic25") or mod:IsDiffic
 	mod:Schedule(10, RaidNotice_AddMessage, RaidWarningFrame, L.setMissing, ChatTypeInfo["RAID_WARNING"])
 end
 
-
+local MCTimer = 90
+local FBTimer = 45
 local warnedAdds = false
 
 function mod:OnCombatStart(delay)
@@ -69,17 +74,17 @@ function mod:OnCombatStart(delay)
 	warnedAdds = false
 	specwarnP2Soon:Schedule(217-delay)
 	timerPhase2:Start()
-	frostBlastCD:Start(247)
+	frostBlastCD:Start(267)
 	warnPhase2:Schedule(227)
 	self:ScheduleMethod(226, "StartPhase2")
 	self:SetStage(1)
-	if mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25") then
-		mindControlCD:Start(287)
-		timerPossibleMC:Schedule(287)
-		warnMindControl:Schedule(282)
+	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) or self:IsNormal() then
+		mindControlCD:Start(227 + 90 - delay)
+		timerPossibleMC:Schedule(227 + 90 - delay)
+		warnMindControl:Schedule(227 + 85 - delay)
 		if self.Options.EqUneqWeaponsKT and self:IsDps() then
-			self:ScheduleMethod(286.0, "UnWKT")
-			self:ScheduleMethod(286.5, "UnWKT")
+			self:ScheduleMethod(227 + 85, "UnWKT")
+			self:ScheduleMethod(227.5 + 85, "UnWKT")
 		end
 	end
 	self:Schedule(227, DBM.RangeCheck.Show, DBM.RangeCheck, 12)
@@ -87,16 +92,16 @@ end
 
 function mod:UnWKT()
 	if (self.Options.EqUneqWeaponsKT or self.Options.EqUneqWeaponsKT2) and self:IsEquipmentSetAvailable("pve") then
-		PickupInventoryItem(16)
-		PutItemInBackpack()
-		PickupInventoryItem(17)
-		PutItemInBackpack()
-		DBM:Debug("MH and OH unequipped",2)
 		if isHunter then
 			PickupInventoryItem(18)
 			PutItemInBackpack()
 			DBM:Debug("Ranged unequipped",2)
 		end
+		PickupInventoryItem(16)
+		PutItemInBackpack()
+		PickupInventoryItem(17)
+		PutItemInBackpack()
+		DBM:Debug("MH and OH unequipped",2)
 	end
 end
 
@@ -121,14 +126,16 @@ end
 local frostBlastTargets = {}
 local chainsTargets = {}
 
-function mod:SPELL_SUMMON(args)
-	if args:IsSpellID(27810) and self:AntiSpam(2, 1) then
-		warnFissure:Show()
-		specwarnfissure:Show()
-		soundFissure:Play("Interface\\AddOns\\DBM-Core\\sounds\\beware.ogg")
-		fissureCD:Start()
-	end
-end
+--function mod:SPELL_SUMMON(args)
+--	if args:IsSpellID(27810) and self:AntiSpam(2, 1) then
+--		warnFissure:Show()
+--		fissureCD:Start()
+--		if UnitName("player") == args.destName then
+--			specwarnfissure:Show()
+--			soundFissure:Play("Interface\\AddOns\\DBM-Core\\sounds\\beware.ogg")
+--		end
+--	end
+--end
 
 function mod:SPELL_AURA_APPLIED(args)
 	if args.spellId == 27808 then -- Frost Blast
@@ -139,8 +146,8 @@ function mod:SPELL_AURA_APPLIED(args)
 			PlaySoundFile("Interface\\Addons\\DBM-Core\\sounds\\alarm1.wav")
 		end
 		blastTimer:Start()
-		frostBlastCD:Start()
-	elseif args.spellId == 27819 then -- Detonate Mana
+		frostBlastCD:Start(FBTimer)
+	elseif args:IsSpellID(27819) then -- Detonate Mana
 		warnMana:Show(args.destName)
 		self:SetIcon(args.destName, 8, 5.5)
 		if self:GetDetonateRange(args.destName) <= 12 then
@@ -155,8 +162,8 @@ function mod:SPELL_AURA_APPLIED(args)
 		end
 	elseif args:IsSpellID(28410) then -- Chains of Kel'Thuzad
 		table.insert(chainsTargets, args.destName)
-		mindControlCD:Start()
-		warnMindControl:Schedule(60)
+		mindControlCD:Start(MCTimer)
+		warnMindControl:Schedule(MCTimer - 5)
 		self:UnscheduleMethod("AnnounceChainsTargets")
 		if #chainsTargets >= 3 then
 			self:AnnounceChainsTargets()
@@ -164,8 +171,8 @@ function mod:SPELL_AURA_APPLIED(args)
 			self:ScheduleMethod(1.0, "AnnounceChainsTargets")
 		end
 		if self.Options.EqUneqWeaponsKT and self:IsDps() then
-			self:ScheduleMethod(58.0, "UnWKT")
-			self:ScheduleMethod(58.5, "UnWKT")
+			self:ScheduleMethod(MCTimer - 2, "UnWKT")
+			self:ScheduleMethod(MCTimer - 1.5, "UnWKT")
 		end
 	end
 end
@@ -206,16 +213,17 @@ end
 function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(27810) then
 		warnFissure:Show()
-		specwarnfissure:Show()
-		soundFissure:Cancel()
-		soundFissure:Schedule(0.01, "Interface\\AddOns\\DBM-Core\\sounds\\beware.ogg")
 		fissureCD:Start()
+		if UnitName("player") == args.destName then
+			specwarnfissure:Show()
+			soundFissure:Play("Interface\\AddOns\\DBM-Core\\sounds\\beware.ogg")
+		end
 	elseif args:IsSpellID(27808) then
-		frostBlastCD:Start()
+		frostBlastCD:Start(FBTimer)
 	elseif args.spellId == 28410 then
-		mindControlCD:Start()
+		mindControlCD:Start(MCTimer)
 		timerPossibleMC:Cancel()
-		timerPossibleMC:Schedule(60)
+		timerPossibleMC:Schedule(MCTimer)
 		DBM:Debug("MC on "..args.destName,2)
 		if mod.Options.EqUneqWeaponsKT2 and args.destName == UnitName("player") then
 			mod:UnWKT()
@@ -265,15 +273,37 @@ function mod:GetDetonateRange(playerName)
 	return 100 --dummy number
 end
 
+function mod:UNIT_DIED(args)
+	if (args.destName == UnitName("L.Corpse")) then
+		warnCorpse:Schedule(40)
+		timerCorpse:Start()
+	end
+end
+
 function mod:CHAT_MSG_MONSTER_YELL(msg)
 	if (msg == L.YellMC1 or msg:find(L.YellMC1) or msg == L.YellMC2 or msg:find(L.YellMC2)) then
 		if mod.Options.EqUneqWeaponsKT and self:IsDps() then
 			mod:UnWKT()
 			mod:UnWKT()
-			self:ScheduleMethod(59, "UnWKT")
+			self:ScheduleMethod(MCTimer - 1, "UnWKT")
 		end
 		timerPossibleMC:Cancel()
 		mindControlCD:Start()
-		timerPossibleMC:Schedule(60)
+		timerPossibleMC:Schedule(MCTimer)
+	elseif (msg == L.YellP3 or msg:find(L.YellP3)) then
+		self:SetStage(3)
+		timerPossibleMC:Cancel()
+		mindControlCD:Stop()
+		frostBlastCD:Stop()
+	elseif	(msg == L.YellP4 or msg:find(L.YellP4)) then
+		self:SetStage(4)
+		timerCorpse:Stop()
+		warnCorpse:Cancel()
+		MCTimer = 45
+		FBTimer = 22
+		warnMindControl:Schedule(MCTimer - 5)
+		mindControlCD:Start(MCTimer)
+		timerPossibleMC:Schedule(MCTimer)
+		frostblastCD:Start(FBTimer)
 	end
 end

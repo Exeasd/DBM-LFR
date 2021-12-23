@@ -4,6 +4,7 @@ local L		= mod:GetLocalizedStrings()
 mod:SetRevision(("$Revision: 7007 $"):sub(12, -3))
 mod:SetCreatureID(15952)
 mod:RegisterCombat("combat")
+mod:EnableModel()
 
 mod:RegisterEventsInCombat(
 	"SPELL_AURA_APPLIED 28622",
@@ -23,11 +24,19 @@ local timerWebSpray		= mod:NewNextTimer(40.5, 29484, nil, nil, nil, 2)
 local timerSpider		= mod:NewTimer(30, "TimerSpider", 17332, nil, nil, 1)
 
 function mod:OnCombatStart(delay)
+	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+		warnWebSpraySoon:Schedule(45.5 - delay)
+		timerWebSpray:Start(50.5 - delay)
+		warnSpidersSoon:Schedule(30 - delay)
+		warnSpidersNow:Schedule(35 - delay)
+		timerSpider:Start(35 - delay)
+	else
 	warnWebSpraySoon:Schedule(35.5 - delay)
 	timerWebSpray:Start(40.5 - delay)
 	warnSpidersSoon:Schedule(25 - delay)
 	warnSpidersNow:Schedule(30 - delay)
 	timerSpider:Start(30 - delay)
+	end
 end
 
 function mod:OnCombatEnd(wipe)
@@ -52,9 +61,14 @@ end
 
 function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(29484, 54125) then -- Web Spray
-		warnWebSprayNow:Show()
+		if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+			warnWebSpraySoon:Schedule(40.5)
+			timerWebSpray:Start(45.5)
+		else
 		warnWebSpraySoon:Schedule(35.5)
 		timerWebSpray:Start()
+		end
+		warnWebSprayNow:Show()
 		warnSpidersSoon:Schedule(25)
 		warnSpidersNow:Schedule(30)
 		timerSpider:Start()
