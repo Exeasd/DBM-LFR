@@ -7,18 +7,21 @@ mod:SetCreatureID(16060)
 mod:RegisterCombat("combat")
 
 mod:RegisterEvents(
-	"UNIT_DIED"
+	"UNIT_DIED",
+	"UNIT_HEALTH"
 )
 
 local warnWaveNow		= mod:NewAnnounce("WarningWaveSpawned", 3, nil, false)
 local warnWaveSoon		= mod:NewAnnounce("WarningWaveSoon", 1)
 local warnRiderDown		= mod:NewAnnounce("WarningRiderDown", 4)
 local warnKnightDown	= mod:NewAnnounce("WarningKnightDown", 2)
+local warnTraineeDown 	= mod:NewAnnounce("WarningTraineeDown", 2)
 local warnPhase2		= mod:NewPhaseAnnounce(2, 4)
+local warnTeleportSoon	= mod:NewAnnounce("WarningTeleportSoon", 3)
 
-local timerPhase2		= mod:NewTimer(275, "TimerPhase2", 27082)
+local timerPhase2		= mod:NewTimer(270, "TimerPhase2", 27082)
 local timerWave			= mod:NewTimer(20, "TimerWave", 27082)
-local timerGate     = mod:NewTimer(205, "Gate Opens", 9484)
+local timerTeleport 	= mod:NewTimer(20, "TimerTeleport", 1953)
 
 local wavesNormal = {
 	{2, L.Trainee, next = 20},
@@ -63,52 +66,74 @@ local wavesHeroic = {
 	{1, L.Rider, 2, L.Knight, 3, L.Trainee},
 }
 
-
+local phase2Timer = 270
 local waves = wavesNormal
 local wave = 0
 
-local function getWaveString(wave)
-	local waveInfo = waves[wave]
-	if #waveInfo == 2 then
-		return L.WarningWave1:format(unpack(waveInfo))
-	elseif #waveInfo == 4 then
-		return L.WarningWave2:format(unpack(waveInfo))
-	elseif #waveInfo == 6 then
-		return L.WarningWave3:format(unpack(waveInfo))
-	end
-end
+-- local function getWaveString(wave)
+--	local waveInfo = waves[wave]
+--	if #waveInfo == 2 then
+--		return L.WarningWave1:format(unpack(waveInfo))
+--	elseif #waveInfo == 4 then
+--		return L.WarningWave2:format(unpack(waveInfo))
+--	elseif #waveInfo == 6 then
+--		return L.WarningWave3:format(unpack(waveInfo))
+--	end
+-- end
 
 function mod:OnCombatStart(delay)
-	if mod:IsDifficulty("heroic25") then
+	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 		waves = wavesHeroic
+		phase2Timer = 300
 	else
 		waves = wavesNormal
+		phase2Timer = 270
 	end
 	wave = 0
-	timerGate:Start()
-	timerPhase2:Start()
-	self:ScheduleMethod(274, "StartPhase2")
-	warnPhase2:Schedule(270)
+	timerPhase2:Start(phase2Timer)
+	self:ScheduleMethod(phase2Timer, "StartPhase2")
+	warnPhase2:Schedule(phase2Timer)
 	timerWave:Start(25, wave + 1)
-	warnWaveSoon:Schedule(22, wave + 1, getWaveString(wave + 1))
-	self:ScheduleMethod(25, "NextWave")
+	self:ScheduleMethod(phase2Timer, "TeleportLoop")
+--	warnWaveSoon:Schedule(22, wave + 1, getWaveString(wave + 1))
+--	self:ScheduleMethod(25, "NextWave")
 	self:SetStage(1)
 end
 
+
+-- function mod:NextWave()
+--	wave = wave + 1
+--	warnWaveNow:Show(wave, getWaveString(wave))
+--	local next = waves[wave].next
+--	if next then
+--		timerWave:Start(next, wave + 1)
+--		warnWaveSoon:Schedule(next - 3, wave + 1, getWaveString(wave + 1))
+--		self:ScheduleMethod(next, "NextWave")
+--	end
+-- end
+function mod:TeleportLoop()
+	timerTeleport:Start()
+	warnTeleportSoon:Schedule(17)
+	self:ScheduleMethod(20, "TeleportLoop")
+end
+
+function mod:UNIT_HEALTH(uId)
+	if self:GetUnitCreatureId(uId) == 16060 and UnitHealth(uId) / UnitHealthMax(uId) <= 0.30 then
+		self:SendSync("hp30")
+	end
+end
 function mod:StartPhase2()
 	self:SetStage(2)
 end
-
-function mod:NextWave()
-	wave = wave + 1
-	warnWaveNow:Show(wave, getWaveString(wave))
-	local next = waves[wave].next
-	if next then
-		timerWave:Start(next, wave + 1)
-		warnWaveSoon:Schedule(next - 3, wave + 1, getWaveString(wave + 1))
-		self:ScheduleMethod(next, "NextWave")
+function mod:OnSync(event)
+	if event == "hp30" then
+		self:UnscheduleMethod("TeleportLoop")
+		self:Unschedule("warnTeleportSoon")
+		self:Stop("TimerTeleport")
 	end
 end
+
+
 
 function mod:UNIT_DIED(args)
 	if bit.band(args.destGUID:sub(0, 5), 0x00F) == 3 then
@@ -117,6 +142,8 @@ function mod:UNIT_DIED(args)
 			warnRiderDown:Show()
 		elseif guid == 16125 then -- Unrelenting Deathknight
 			warnKnightDown:Show()
+		elseif guid == 16124 then -- Unrelenting Trainee
+			warnTraineeDown:Show()
 		end
 	end
 end

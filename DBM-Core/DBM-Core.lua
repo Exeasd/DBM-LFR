@@ -89,10 +89,10 @@ local function showRealDate(curseDate)
 end
 
 DBM = {
-	Revision = ("$Revision: 7008 $"):sub(12, -3),
-	Version = "7.08",
-	DisplayVersion = "7.08 DBM-Warmane by Zidras", -- the string that is shown as version
-	ReleaseRevision = 7008 -- the revision of the latest stable version that is available (for /dbm ver2)
+	Revision = ("$Revision: 8007 $"):sub(12, -3),
+	Version = "8.07",
+	DisplayVersion = "8.07", -- the string that is shown as version
+	ReleaseRevision = 8007 -- the revision of the latest stable version that is available (for /dbm ver2)
 }
 DBM.HighestRelease = DBM.ReleaseRevision --Updated if newer version is detected, used by update nags to reflect critical fixes user is missing on boss pulls
 
@@ -2137,26 +2137,28 @@ do
 			DBM.RangeCheck:Hide(true)
 		else
 			if r and (r < 201) then
-				DBM.RangeCheck:Show(r, nil)
+				DBM.RangeCheck:Show(r, nil, true, nil, reverse)
 			else
-				DBM.RangeCheck:Show(10, nil)
+				DBM.RangeCheck:Show(10, nil, true, nil, reverse)
 			end
 		end
 	end
 	SLASH_DBMRANGE1 = "/range"
 	SLASH_DBMRANGE2 = "/distance"
-	SLASH_DBMBOSSRANGE1 = "/bossrange"
+	SLASH_DBMHUDAR1 = "/hudar"
+	SLASH_DBMRRANGE1 = "/rrange"
+	SLASH_DBMRRANGE2 = "/rdistance"
 	SlashCmdList["DBMRANGE"] = function(msg)
 		local r = tonumber(msg) or 10
 		updateRangeFrame(r, false)
 	end
-	SlashCmdList["DBMBOSSRANGE"] = function(msg)
-		local r = tonumber(msg)
-		if not r then
-			DBM.RangeCheck:DisableBossMode()
-		else
-			DBM.RangeCheck:SetBossRange(r or 10, "target")
-		end
+	SlashCmdList["DBMHUDAR"] = function(msg)
+		local r = tonumber(msg) or 10
+		DBMHudMap:ToggleHudar(r)
+	end
+	SlashCmdList["DBMRRANGE"] = function(msg)
+		local r = tonumber(msg) or 10
+		updateRangeFrame(r, true)
 	end
 end
 
@@ -3811,7 +3813,7 @@ do
 			self.Options.RestoreSettingBreakTimer = timer.."/"..time()
 			if not self.Options.DontShowPT2 then
 				dummyMod2.timer:Start(timer)
-				sendSync("DBMv4-Pizza", ("%s\t%s\t%s"):format(timer, L.TIMER_BREAK, tostring(true))) -- Backwards compatibility so old DBMs can receive break timers from this DBM
+				sendSync("DBMv4-Pizza", ("%s\t%s\t%s"):format(timer, L.BREAK_START, tostring(true))) -- Backwards compatibility so old DBMs can receive break timers from this DBM
 			end
 			if not self.Options.DontShowPTText then
 				local hour, minute = GetGameTime()
@@ -3993,8 +3995,7 @@ do
 		end
 	end
 
-	-- Workaround for mismatched clients locales: L.TIMER_PULL and L.TIMER_BREAK would be different and therefore would not play sounds since the receiver locale would be different than sender locale.
-	local localized_TIMER_PULL = {
+	local localized_TIMER_PULL = { -- Workaround for mismatched clients locales: L.TIMER_PULL would be different and therefore would not play sounds since the receiver locale would be different than sender locale.
 		"开怪倒计时",	--CN
 		"Pull in",		--DE, EN
 		"Iniciando en",	--ES
@@ -4005,18 +4006,6 @@ do
 		"Атака",		--RU
 		"戰鬥準備"		--TW
 	}
-	local localized_TIMER_BREAK = {
-		"休息时间！",		-- CN
-		"Pause!",			-- DE
-		"Pause",			-- DE (old DBM)
-		"Break time!",		-- EN, FR (old DBM)
-		"¡Toca descanso!",	-- ES
-		"¡Descanso!",		-- ES (old DBM)
-		"Pause !",			-- FR
-		"쉬는 시간!",		-- KR
-		"Перерыв!",			-- RU
-		"休息時間!"			-- TW
-	}
 
 	syncHandlers["DBMv4-Pizza"] = function(sender, time, text, new)
 		if select(2, IsInInstance()) == "pvp" then return end
@@ -4026,13 +4015,9 @@ do
 		text = tostring(text)
 		if time and text then
 			local pullTimer = tContains(localized_TIMER_PULL, tostring(text)) and L.TIMER_PULL or nil -- Fixes localization of pull bar text
-			local breakTimer = tContains(localized_TIMER_BREAK, tostring(text)) and L.TIMER_BREAK or nil -- Fixes localization of break bar text
 			if pullTimer then
 				if new then return end
 				handleSync(nil, sender, "DBMv4-PT", time, text)
-			elseif breakTimer then
-				if new then return end
-				handleSync(nil, sender, "DBMv4-BT", time, text)
 			else
 				DBM:CreatePizzaTimer(time, text, nil, sender)
 			end
@@ -4586,7 +4571,7 @@ do
 	end
 
 	function DBM:ShowUpdateReminder(newVersion, newRevision, text, url)
-		urlText = url or L.UPDATEREMINDER_URL or "https://github.com/Zidras/DBM-Warmane"
+		urlText = url or L.UPDATEREMINDER_URL or "https://github.com/Exeasd/DBM-LFR"
 		if not frame then
 			createFrame()
 		else
@@ -6608,16 +6593,6 @@ do
 			end
 		end
 		return name, uid, bossuid
-	end
-
-	function bossModPrototype:GetBossUnitByCreatureId(cid)
-		for i = 1, 5 do
-			local uId = "boss"..i
-			if self:GetUnitCreatureId(uId) == cid then
-				return uId
-			end
-		end
-		return "target"
 	end
 
 	function bossModPrototype:GetBossTarget(cidOrGuid, scanOnlyBoss)

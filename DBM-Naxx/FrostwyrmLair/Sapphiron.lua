@@ -21,6 +21,7 @@ local warnDrainLifeSoon	= mod:NewSoonAnnounce(28542, 1)
 local warnAirPhaseSoon	= mod:NewAnnounce("WarningAirPhaseSoon", 3, "Interface\\AddOns\\DBM-Core\\textures\\CryptFiendUnBurrow.blp")
 local warnAirPhaseNow	= mod:NewAnnounce("WarningAirPhaseNow", 4, "Interface\\AddOns\\DBM-Core\\textures\\CryptFiendUnBurrow.blp")
 local warnLanded		= mod:NewAnnounce("WarningLanded", 4, "Interface\\AddOns\\DBM-Core\\textures\\CryptFiendBurrow.blp")
+local warnFrozenOrb		= mod:NewAnnounce("WarningFrozenOrb", 4, 72081)
 
 local warnDeepBreath	= mod:NewSpecialWarning("WarningDeepBreath")
 local specwarnlowhp		= mod:NewSpecialWarning("SpecWarnSapphLow")
@@ -28,18 +29,24 @@ local warnFrostrain		= mod:NewSpecialWarningMove(55699)
 
 mod:AddBoolOption("WarningIceblock", true, "yell")
 
-local timerDrainLife	= mod:NewCDTimer(20, 28542)
-local timerAirPhase		= mod:NewTimer(60, "TimerAir", "Interface\\AddOns\\DBM-Core\\textures\\CryptFiendUnBurrow.blp")
+local timerDrainLife	= mod:NewCDTimer(22, 28542)
+local timerAirPhase		= mod:NewTimer(66, "TimerAir", "Interface\\AddOns\\DBM-Core\\textures\\CryptFiendUnBurrow.blp")
 local timerLanding		= mod:NewTimer(28.5, "TimerLanding", "Interface\\AddOns\\DBM-Core\\textures\\CryptFiendBurrow.blp")
-local timerIceBlast		= mod:NewTimer(8, "TimerIceBlast", 15876)
+local timerIceBlast		= mod:NewTimer(8.2, "TimerIceBlast", 15876)
+local timerFrozenOrb 	= mod:NewTimer(30, "TimerFrozenOrb", 72081)
 
 local noTargetTime = 0
 local isFlying = false
 local warned_lowhp = false
 
 mod:AddBoolOption("RangeFrame", true)
+mod:AddBoolOption("PlaySoundOnIceBlast", false)
 
 function mod:OnCombatStart(delay)
+	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+		timerFrozenOrb:Start(-delay)
+		warnFrozenOrb:Schedule(30 - delay)
+	end
 	noTargetTime = 0
 	isFlying = false
 	warned_lowhp = false
@@ -78,17 +85,16 @@ end
 
 mod.CHAT_MSG_RAID_BOSS_EMOTE = mod.CHAT_MSG_MONSTER_EMOTE -- used to be a normal emote
 
-function mod:UNIT_HEALTH(uId)
-	if not warned_lowhp and self:GetUnitCreatureId(uId) == 15989 and UnitHealth(uId) / UnitHealthMax(uId) < 0.1 then
-		warned_lowhp = true
-		specwarnlowhp:Show()
-		timerAirPhase:Cancel()
-	end
-end
-
 function mod:OnSync(event)
 	if event == "DeepBreath" then
-		timerIceBlast:Show()
+		if self.Options.PlaySoundOnIceBlast then
+			PlaySoundFile("Sound\\Creature\\HeadlessHorseman\\Horseman_Beckon_01.wav")
+		end
+		if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+			timerIceBlast:Start(7.8)
+		else
+			timerIceBlast:Show()
+		end
 		timerLanding:Update(14)
 		self:ScheduleMethod(14.5, "Landing")
 		warnDeepBreath:Show()
@@ -96,7 +102,13 @@ function mod:OnSync(event)
 end
 
 function mod:Landing()
-	warnAirPhaseSoon:Schedule(50)
+	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+		timerFrozenOrb:Start()
+		timerFrozenOrb:Schedule(30, 25)
+		warnFrozenOrb:Schedule(30)
+		warnFrozenOrb:Schedule(55)
+	end
+	warnAirPhaseSoon:Schedule(56)
 	warnLanded:Show()
 	timerAirPhase:Start()
 	if self.Options.RangeFrame then

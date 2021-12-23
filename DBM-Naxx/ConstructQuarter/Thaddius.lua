@@ -24,7 +24,7 @@ local warnThrowSoon			= mod:NewSoonAnnounce(28338, 1)
 local enrageTimer			= mod:NewBerserkTimer(365)
 local timerNextShift		= mod:NewNextTimer(30, 28089)
 local timerShiftCast		= mod:NewCastTimer(3, 28089)
-local timerThrow			= mod:NewNextTimer(20.6, 28338)
+local timerThrow			= mod:NewNextTimer(20.1, 28338)
 
 local soundShiftWarn		= mod:NewSound(28089)
 local soundShift3			= mod:NewSound3(28089)
@@ -46,9 +46,9 @@ function mod:OnCombatStart(delay)
 	self:SetStage(1)
 	currentCharge = nil
 	down = 0
-	self:ScheduleMethod(20.6 - delay, "TankThrow")
+	self:ScheduleMethod(20.1 - delay, "TankThrow")
 	timerThrow:Start(-delay)
-	warnThrowSoon:Schedule(17.6 - delay)
+	warnThrowSoon:Schedule(17.1 - delay)
 end
 
 local lastShift = 0
@@ -125,8 +125,8 @@ function mod:TankThrow()
 		return
 	end
 	timerThrow:Start()
-	warnThrowSoon:Schedule(17.6)
-	self:ScheduleMethod(20.6, "TankThrow")
+	warnThrowSoon:Schedule(17.1)
+	self:ScheduleMethod(20.1, "TankThrow")
 end
 
 local function arrowOnUpdate(self, elapsed)

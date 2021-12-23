@@ -30,9 +30,10 @@ mod:AddBoolOption("AnnounceFails", true, "announce")
 
 local timerShadowFissure	= mod:NewCastTimer(5, 59128, nil, nil, nil, 3) --Cast timer until Void Blast. it's what happens when shadow fissure explodes.
 local timerWall				= mod:NewCDTimer(30, 43113, nil, nil, nil, 2)
-local timerTenebron			= mod:NewTimer(30, "TimerTenebron", 61248, nil, nil, 1)
-local timerShadron			= mod:NewTimer(80, "TimerShadron", 58105, nil, nil, 1)
-local timerVesperon			= mod:NewTimer(120, "TimerVesperon", 61251, nil, nil, 1)
+local timerTenebron			= mod:NewTimer(33, "TimerTenebron", 61248, nil, nil, 1)
+local timerShadron			= mod:NewTimer(120, "TimerShadron", 58105, nil, nil, 1)
+local timerVesperon			= mod:NewTimer(80, "TimerVesperon", 61251, nil, nil, 1)
+local enrageTimer			= mod:NewBerserkTimer(720)
 
 local timerTenebronWhelps   = mod:NewTimer(10, "Tenebron Whelps", 1022)
 local timerShadronPortal    = mod:NewTimer(10, "Shadron Portal", 11420)
@@ -110,8 +111,8 @@ function mod:CheckDrakes(delay)
 		DBM.BossHealth:AddBoss(28860, "Sartharion")
 	end
 	if isunitdebuffed(61248) then	-- Power of Tenebron
-		timerTenebron:Start(26 - delay)
-		warnTenebron:Schedule(21 - delay)
+		timerTenebron:Start(-delay)
+		warnTenebron:Schedule(28 - delay)
 		timerTenebronWhelps:Start(60 - delay)
 		warnTenebronWhelps:Schedule(55 - delay)
 		if self.Options.HealthFrame then
@@ -119,21 +120,21 @@ function mod:CheckDrakes(delay)
 		end
 	end
 	if isunitdebuffed(58105) then	-- Power of Shadron
-		timerShadron:Start(74 - delay)
-		warnShadron:Schedule(69 - delay)
-		timerShadronPortal:Start(94 - delay)
-		warnShadronPortal:Schedule(89 - delay)
+		timerShadron:Start(-delay)
+		warnShadron:Schedule(115 - delay)
+		timerShadronPortal:Start(140 - delay)
+		warnShadronPortal:Schedule(135 - delay)
 		if self.Options.HealthFrame then
 			DBM.BossHealth:AddBoss(30451, "Shadron")
 		end
 	end
 	if isunitdebuffed(61251) then	-- Power of Vesperon
-		timerVesperon:Start(119 - delay)
-		warnVesperon:Schedule(114 - delay)
-		timerVesperonPortal:Start(139 - delay)
-		timerVesperonPortal2:Start(199 - delay)
-		warnVesperonPortal:Schedule(134 - delay)
-		warnVesperonPortal:Schedule(194 - delay)
+		timerVesperon:Start(75 - delay)
+		warnVesperon:Schedule(70 - delay)
+		timerVesperonPortal:Start(95 - delay)
+		timerVesperonPortal2:Start(155 - delay)
+		warnVesperonPortal:Schedule(90 - delay)
+		warnVesperonPortal:Schedule(150 - delay)
 		if self.Options.HealthFrame then
 			DBM.BossHealth:AddBoss(30449, "Vesperon")
 		end
@@ -146,6 +147,7 @@ function mod:OnCombatStart(delay)
 
 	table.wipe(lastvoids)
 	table.wipe(lastfire)
+	enrageTimer:Start(-delay)
 end
 
 

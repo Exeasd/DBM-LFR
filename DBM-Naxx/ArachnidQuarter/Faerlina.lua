@@ -4,8 +4,7 @@ local L		= mod:GetLocalizedStrings()
 mod:SetRevision(("$Revision: 2248 $"):sub(12, -3))
 mod:SetCreatureID(15953)
 
-mod:RegisterCombat("combat")
-
+mod:RegisterCombat("yell", L.Yell1, L.Yell2, L.Yell3, L.Yell4)
 mod:RegisterEvents(
 	"SPELL_CAST_SUCCESS",
 	"SPELL_AURA_APPLIED"
@@ -38,7 +37,7 @@ function mod:SPELL_CAST_SUCCESS(args)
 		warnEnrageSoon:Cancel()
 		timerEnrage:Stop()
 		if enraged then
-			timerEnrage:Start()
+			timerEnrage:Start(50)
 			warnEnrageSoon:Schedule(45)
 		end
 		timerEmbrace:Start()

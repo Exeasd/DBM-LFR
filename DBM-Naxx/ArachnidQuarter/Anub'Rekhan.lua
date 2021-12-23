@@ -4,7 +4,7 @@ local L		= mod:GetLocalizedStrings()
 mod:SetRevision(("$Revision: 4902 $"):sub(12, -3))
 mod:SetCreatureID(15956)
 
-mod:RegisterCombat("combat")
+mod:RegisterCombat("yell", L.Yell1, L.Yell2, L.Yell3)
 
 mod:EnableModel()
 
@@ -20,15 +20,20 @@ local warningLocustFaded	= mod:NewAnnounce("WarningLocustFaded", 1, 28785)
 
 local specialWarningLocust	= mod:NewSpecialWarning("SpecialLocust")
 
-local timerLocustIn			= mod:NewCDTimer(55, 28785)
-local timerLocustFade 		= mod:NewBuffActiveTimer(23, 28785)
+local timerLocustIn			= mod:NewCDTimer(80, 28785)
+local timerLocustFade 		= mod:NewBuffActiveTimer(26, 28785)
 
 mod:AddBoolOption("ArachnophobiaTimer", true, "timer")
 
 
 function mod:OnCombatStart(delay)
-	timerLocustIn:Start(70 - delay)
-	warningLocustSoon:Schedule(65 - delay)
+	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+		timerLocustIn:Start(90 - delay)
+		warningLocustSoon:Schedule(80 - delay)
+	else
+		timerLocustIn:Start(91 - delay)
+		warningLocustSoon:Schedule(76 - delay)
+	end
 end
 
 function mod:SPELL_CAST_START(args)
@@ -36,17 +41,24 @@ function mod:SPELL_CAST_START(args)
 		warningLocustNow:Show()
 		specialWarningLocust:Show()
 		timerLocustIn:Stop()
-		timerLocustFade:Start(23)
+		if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+			timerLocustFade:Start(26)
+		else
+			timerLocustFade:Start(19)
+		end
 	end
 end
 
 function mod:SPELL_AURA_REMOVED(args)
-	if args:IsSpellID(28785, 54021)
-	and args.auraType == "BUFF" then
+	if args:IsSpellID(28785, 54021) and args.auraType == "BUFF" then
+		if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
+			timerLocustIn:Start(67)
+			warningLocustSoon:Schedule(45)
+		else
+			timerLocustIn:Start()
+			warningLocustSoon:Schedule(62)
+		end
 		warningLocustFaded:Show()
-		timerLocustIn:Start()
-		warningLocustSoon:Schedule(70-23)
-		timerLocustIn:Start(75-23)
 	end
 end
 
@@ -55,6 +67,8 @@ function mod:UNIT_DIED(args)
 		local guid = tonumber(args.destGUID:sub(9, 12), 16)
 		if guid == 15956 then		-- Anub'Rekhan
 			DBM.Bars:CreateBar(1200, L.ArachnophobiaTimer)
+			timerLocustIn:Stop()
+			warningLocustSoon:Cancel()
 		end
 	end
 end
