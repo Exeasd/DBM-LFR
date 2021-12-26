@@ -15,7 +15,7 @@ end
 L.HOW_TO_USE_MOD					= "Welcome to " .. L.DBM .. ". Type /dbm help for a list of supported commands. To access options type /dbm in your chat to begin configuration. Load specific zones manually to configure any boss specific settings to your liking as well. " .. L.DBM .. " will setup defaults for your spec, but you may want to fine tune these."
 L.SILENT_REMINDER					= "Reminder: " .. L.DBM .. " is still in silent mode."
 
-L.UPDATEREMINDER_URL				= "https://github.com/Zidras/DBM-Warmane/"
+L.UPDATEREMINDER_URL				= "https://github.com/Exeasd/DBM-LFR/"
 
 L.LOAD_MOD_ERROR					= "Error while loading boss mods for %s: %s"
 L.LOAD_MOD_SUCCESS					= "Loaded '%s' mods. For more options such as custom alert sounds and personalized warning notes, type /dbm."
@@ -176,6 +176,7 @@ L.RANGECHECK_OPTION_SLOW			= "Slow (lowest CPU)"
 L.RANGECHECK_OPTION_AVERAGE			= "Medium"
 L.RANGECHECK_OPTION_FAST			= "Fast (Most real-time)"
 L.RANGERADAR_HEADER					= "Range Radar (%d yd)"
+L.RANGERADAR_BOSS_HEADER			= "Boss Range (%d yd)"
 L.RANGERADAR_IN_RANGE_TEXT			= "%d in range (%d yd)"--Multi
 L.RANGERADAR_IN_RANGE_TEXTONE		= "%s (%0.1f yd)"--One target
 L.RANGE_CHECK_ZONE_UNSUPPORTED		= "A %d yard range check is not supported in this zone.\nSupported ranges are 10, 11, 15 and 28 yard."

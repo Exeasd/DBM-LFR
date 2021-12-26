@@ -14,8 +14,8 @@
 ## SavedVariablesPerCharacter: DBM_UsedProfile, DBM_UseDualProfile, DBM_CharSavedRevision, DBM_SavedOptions
 ## LoadOnDemand: 0
 ## DefaultState: enabled
-## Author: Barsoom, Bunny67, Zidras, DBM-frostmourne contributors, original DBM team
-## X-Website: https://github.com/Zidras/DBM-Warmane/
+## Author: Barsoom, Bunny67, Zidras, Battle, DBM-frostmourne contributors, original DBM team
+## X-Website: https://github.com/Exeasd/DBM-LFR/
 
 compat.lua
 

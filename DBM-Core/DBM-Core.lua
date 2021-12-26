@@ -89,10 +89,10 @@ local function showRealDate(curseDate)
 end
 
 DBM = {
-	Revision = ("$Revision: 8007 $"):sub(12, -3),
-	Version = "8.07",
-	DisplayVersion = "8.07", -- the string that is shown as version
-	ReleaseRevision = 8007 -- the revision of the latest stable version that is available (for /dbm ver2)
+	Revision = ("$Revision: 8008 $"):sub(12, -3),
+	Version = "8.08",
+	DisplayVersion = "8.08", -- the string that is shown as version
+	ReleaseRevision = 8008 -- the revision of the latest stable version that is available (for /dbm ver2)
 }
 DBM.HighestRelease = DBM.ReleaseRevision --Updated if newer version is detected, used by update nags to reflect critical fixes user is missing on boss pulls
 
@@ -1189,13 +1189,15 @@ do
 		--Break timer recovery
 		--Try local settings
 		if self.Options.RestoreSettingBreakTimer then
-			local timer, startTime = string.split("/", self.Options.RestoreSettingBreakTimer)
-			local elapsed = time() - tonumber(startTime)
-			local remaining = timer - elapsed
-			if remaining > 0 then
-				breakTimerStart(DBM, remaining, playerName)
-			else--It must have ended while we were offline, kill variable.
-				self.Options.RestoreSettingBreakTimer = nil
+			if not DBM.Bars:GetBar(L.TIMER_BREAK) then -- Already recovered. Prevent duplicate recovery
+				local timer, startTime = string.split("/", self.Options.RestoreSettingBreakTimer)
+				local elapsed = time() - tonumber(startTime)
+				local remaining = timer - elapsed
+				if remaining > 0 then
+					breakTimerStart(DBM, remaining, playerName)
+				else--It must have ended while we were offline, kill variable.
+					self.Options.RestoreSettingBreakTimer = nil
+				end
 			end
 		end
 		if IsInGuild() then
@@ -2137,28 +2139,26 @@ do
 			DBM.RangeCheck:Hide(true)
 		else
 			if r and (r < 201) then
-				DBM.RangeCheck:Show(r, nil, true, nil, reverse)
+				DBM.RangeCheck:Show(r, nil)
 			else
-				DBM.RangeCheck:Show(10, nil, true, nil, reverse)
+				DBM.RangeCheck:Show(10, nil)
 			end
 		end
 	end
 	SLASH_DBMRANGE1 = "/range"
 	SLASH_DBMRANGE2 = "/distance"
-	SLASH_DBMHUDAR1 = "/hudar"
-	SLASH_DBMRRANGE1 = "/rrange"
-	SLASH_DBMRRANGE2 = "/rdistance"
+	SLASH_DBMBOSSRANGE1 = "/bossrange"
 	SlashCmdList["DBMRANGE"] = function(msg)
 		local r = tonumber(msg) or 10
 		updateRangeFrame(r, false)
 	end
-	SlashCmdList["DBMHUDAR"] = function(msg)
-		local r = tonumber(msg) or 10
-		DBMHudMap:ToggleHudar(r)
-	end
-	SlashCmdList["DBMRRANGE"] = function(msg)
-		local r = tonumber(msg) or 10
-		updateRangeFrame(r, true)
+	SlashCmdList["DBMBOSSRANGE"] = function(msg)
+		local r = tonumber(msg)
+		if not r then
+			DBM.RangeCheck:DisableBossMode()
+		else
+			DBM.RangeCheck:SetBossRange(r or 10, "target")
+		end
 	end
 end
 
@@ -3813,7 +3813,7 @@ do
 			self.Options.RestoreSettingBreakTimer = timer.."/"..time()
 			if not self.Options.DontShowPT2 then
 				dummyMod2.timer:Start(timer)
-				sendSync("DBMv4-Pizza", ("%s\t%s\t%s"):format(timer, L.BREAK_START, tostring(true))) -- Backwards compatibility so old DBMs can receive break timers from this DBM
+				sendSync("DBMv4-Pizza", ("%s\t%s\t%s"):format(timer, L.TIMER_BREAK, tostring(true))) -- Backwards compatibility so old DBMs can receive break timers from this DBM
 			end
 			if not self.Options.DontShowPTText then
 				local hour, minute = GetGameTime()
@@ -3847,22 +3847,15 @@ do
 		breakTimerStart(DBM, timer, sender)
 	end
 
-	whisperSyncHandlers["DBMv4-BTR3"] = function(sender, timer, maxtime, id, text, texture)
+	whisperSyncHandlers["DBMv4-BTR3"] = function(sender, timer)
+		if DBM.Options.DontShowUserTimers then return end
 		timer = tonumber(timer or 0)
-		maxtime = tonumber(maxtime or 0)
-		texture = tonumber(texture) or texture
 		if timer > 3600 then return end
-		if id   == nil then id = L.TIMER_BREAK end--old ver compat
-		if text == nil then text = L.TIMER_BREAK end--old ver compat
-		if texture and type(texture)=="number" then texture = select(3, GetSpellInfo(texture)) end
-		local combaticon = texture or "Interface\\Icons\\Spell_Nature_WispSplode"
 		DBM:Unschedule(DBM.RequestTimers)--IF we got BTR3 sync, then we know immediately RequestTimers was successful, so abort others
 		if #inCombat >= 1 then return end
-		if DBM.Bars:GetBar(id) then return end--Already recovered. Prevent duplicate recovery
-		DBM:Debug("Calling createbar "..maxtime..id.." icon "..combaticon,3)
-		DBM.Bars:CreateBar(maxtime, id, combaticon)
-		DBM.Bars:GetBar(id):SetText(text)
-		DBM.Bars:UpdateBar(id, maxtime-timer, maxtime)
+		if DBM.Bars:GetBar(L.TIMER_BREAK) then return end--Already recovered. Prevent duplicate recovery
+		DBM:Debug("BTR3 calling breakTimerStart from "..sender.." with remaining "..timer,3)
+		breakTimerStart(DBM, timer, sender)
 	end
 
 	local function SendVersion(guild)
@@ -3963,7 +3956,7 @@ do
 							else
 								DBM:AddMsg(L.UPDATEREMINDER_HEADER:match("([^\n]*)"))
 								DBM:AddMsg(L.UPDATEREMINDER_HEADER:match("\n(.*)"):format(displayVersion, revision))
-								DBM:AddMsg(("|HDBM:update:%s:%s|h|cff3588ff[https://github.com/Zidras/DBM-Warmane]"):format(displayVersion, revision))
+								DBM:AddMsg(("|HDBM:update:%s:%s|h|cff3588ff[https://github.com/Exeasd/DBM-LFR]"):format(displayVersion, revision))
 							end
 						end
 					end
@@ -3995,7 +3988,8 @@ do
 		end
 	end
 
-	local localized_TIMER_PULL = { -- Workaround for mismatched clients locales: L.TIMER_PULL would be different and therefore would not play sounds since the receiver locale would be different than sender locale.
+	-- Workaround for mismatched clients locales: L.TIMER_PULL and L.TIMER_BREAK would be different and therefore would not play sounds since the receiver locale would be different than sender locale.
+	local localized_TIMER_PULL = {
 		"开怪倒计时",	--CN
 		"Pull in",		--DE, EN
 		"Iniciando en",	--ES
@@ -4006,6 +4000,18 @@ do
 		"Атака",		--RU
 		"戰鬥準備"		--TW
 	}
+	local localized_TIMER_BREAK = {
+		"休息时间！",		-- CN
+		"Pause!",			-- DE
+		"Pause",			-- DE (old DBM)
+		"Break time!",		-- EN, FR (old DBM)
+		"¡Toca descanso!",	-- ES
+		"¡Descanso!",		-- ES (old DBM)
+		"Pause !",			-- FR
+		"쉬는 시간!",		-- KR
+		"Перерыв!",			-- RU
+		"休息時間!"			-- TW
+	}
 
 	syncHandlers["DBMv4-Pizza"] = function(sender, time, text, new)
 		if select(2, IsInInstance()) == "pvp" then return end
@@ -4015,9 +4021,13 @@ do
 		text = tostring(text)
 		if time and text then
 			local pullTimer = tContains(localized_TIMER_PULL, tostring(text)) and L.TIMER_PULL or nil -- Fixes localization of pull bar text
+			local breakTimer = tContains(localized_TIMER_BREAK, tostring(text)) and L.TIMER_BREAK or nil -- Fixes localization of break bar text
 			if pullTimer then
 				if new then return end
 				handleSync(nil, sender, "DBMv4-PT", time, text)
+			elseif breakTimer then
+				if new then return end
+				handleSync(nil, sender, "DBMv4-BT", time, text)
 			else
 				DBM:CreatePizzaTimer(time, text, nil, sender)
 			end
@@ -5877,12 +5887,8 @@ do
 			local breakBar = self.Bars:GetBar("%s\t"..L.TIMER_BREAK) or self.Bars:GetBar(L.TIMER_BREAK)
 			if breakBar then
 				self:Debug("Sending Break timer to "..target, 2)
-				SendAddonMessage("DBMv4-BTR3", ("%s\t%s\t%s\t%s\t"):format(breakBar.timer, breakBar.totalTime, breakBar.id, L.TIMER_BREAK, 52800), "WHISPER", target)
-			end
-			breakBar = self.Bars:GetBar("TimerCombatStart")
-			if breakBar then
-				self:Debug("Sending TimerCombatStart to "..target, 2)
-				SendAddonMessage("DBMv4-BTR3", ("%s\t%s\t%s\t%s\t%s"):format(breakBar.timer, breakBar.totalTime, breakBar.id, L.GENERIC_TIMER_COMBAT, 2457), "WHISPER", target)
+				SendAddonMessage("DBMv4-BTR3", ("%s"):format(breakBar.timer), "WHISPER", target)
+				SendAddonMessage("DBMv4-Pizza", ("%s\t%s\t%s"):format(breakBar.timer, L.TIMER_BREAK, tostring(true))) -- Backwards compatibility so old DBMs can receive break timers from this DBM
 			end
 			return
 		end
@@ -6593,6 +6599,16 @@ do
 			end
 		end
 		return name, uid, bossuid
+	end
+
+	function bossModPrototype:GetBossUnitByCreatureId(cid)
+		for i = 1, 5 do
+			local uId = "boss"..i
+			if self:GetUnitCreatureId(uId) == cid then
+				return uId
+			end
+		end
+		return "target"
 	end
 
 	function bossModPrototype:GetBossTarget(cidOrGuid, scanOnlyBoss)
