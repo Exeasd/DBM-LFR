@@ -5,8 +5,8 @@ local L = DBM_GUI_Translations
 L.MainFrame = "Deadly Boss Mods"
 
 L.TranslationByPrefix		= "Retail backport by "
-L.TranslationBy 			= "Barsoom, Bunny67, Zidras"
-L.Website					= "Visit us on discord at |cFF73C2FBhttps://discord.gg/CyVWDWS|r"
+L.TranslationBy 			= "Barsoom, Bunny67, Zidras, Battle"
+L.Website					= ""
 L.WebsiteButton				= "GitHub"
 
 L.OTabBosses	= "Bosses"
