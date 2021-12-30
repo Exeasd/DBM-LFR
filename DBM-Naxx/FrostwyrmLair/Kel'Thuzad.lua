@@ -290,12 +290,12 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		timerPossibleMC:Cancel()
 		mindControlCD:Start()
 		timerPossibleMC:Schedule(MCTimer)
-	elseif (msg == L.YellP3 or msg:find(L.YellP3)) then
+	elseif (msg == L.YellP3 or msg:find(L.YellP3)) and (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 		self:SetStage(3)
 		timerPossibleMC:Cancel()
 		mindControlCD:Stop()
 		frostBlastCD:Stop()
-	elseif	(msg == L.YellP4 or msg:find(L.YellP4)) then
+	elseif	(msg == L.YellP4 or msg:find(L.YellP4)) and (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 		self:SetStage(4)
 		timerCorpse:Stop()
 		warnCorpse:Cancel()
@@ -304,6 +304,6 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		warnMindControl:Schedule(MCTimer - 5)
 		mindControlCD:Start(MCTimer)
 		timerPossibleMC:Schedule(MCTimer)
-		frostblastCD:Start(FBTimer)
+		frostBlastCD:Start(FBTimer)
 	end
 end
