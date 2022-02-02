@@ -16,7 +16,6 @@ mod:RegisterEvents(
 	"SPELL_AURA_REMOVED",
 	"SPELL_CAST_SUCCESS",
 	"UNIT_HEALTH",
-	"UNIT_DIED",
 	"CHAT_MSG_MONSTER_YELL",
 	"SPELL_SUMMON"
 )
@@ -71,6 +70,8 @@ function mod:OnCombatStart(delay)
 	if self.Options.ShowRange then
 		self:ScheduleMethod(217-delay, "RangeToggle", true)
 	end
+	MCTimer = 90
+	FBTimer = 45
 	warnedAdds = false
 	specwarnP2Soon:Schedule(217-delay)
 	timerPhase2:Start()
@@ -80,7 +81,6 @@ function mod:OnCombatStart(delay)
 	self:SetStage(1)
 	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) or self:IsNormal() then
 		mindControlCD:Start(227 + 90 - delay)
-		timerPossibleMC:Schedule(227 + 90 - delay)
 		warnMindControl:Schedule(227 + 85 - delay)
 		if self.Options.EqUneqWeaponsKT and self:IsDps() then
 			self:ScheduleMethod(227 + 85, "UnWKT")
@@ -220,16 +220,17 @@ function mod:SPELL_CAST_SUCCESS(args)
 		end
 	elseif args:IsSpellID(27808) then
 		frostBlastCD:Start(FBTimer)
-	elseif args.spellId == 28410 then
+	elseif args:IsSpellID(28410) then
 		mindControlCD:Start(MCTimer)
-		timerPossibleMC:Cancel()
-		timerPossibleMC:Schedule(MCTimer)
 		DBM:Debug("MC on "..args.destName,2)
 		if mod.Options.EqUneqWeaponsKT2 and args.destName == UnitName("player") then
 			mod:UnWKT()
 			mod:UnWKT()
 			DBM:Debug("Unequipping",2)
 		end
+	elseif args:IsSpellID(36721) and self:AntiSpam(30,1) then
+		warnCorpse:Schedule(40)
+		timerCorpse:Start()
 	end
 end
 
@@ -273,12 +274,7 @@ function mod:GetDetonateRange(playerName)
 	return 100 --dummy number
 end
 
-function mod:UNIT_DIED(args)
-	if (args.destName == UnitName("L.Corpse")) then
-		warnCorpse:Schedule(40)
-		timerCorpse:Start()
-	end
-end
+
 
 function mod:CHAT_MSG_MONSTER_YELL(msg)
 	if (msg == L.YellMC1 or msg:find(L.YellMC1) or msg == L.YellMC2 or msg:find(L.YellMC2)) then
@@ -287,14 +283,13 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 			mod:UnWKT()
 			self:ScheduleMethod(MCTimer - 1, "UnWKT")
 		end
-		timerPossibleMC:Cancel()
 		mindControlCD:Start()
-		timerPossibleMC:Schedule(MCTimer)
 	elseif (msg == L.YellP3 or msg:find(L.YellP3)) and (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 		self:SetStage(3)
-		timerPossibleMC:Cancel()
 		mindControlCD:Stop()
 		frostBlastCD:Stop()
+		warnCorpse:Schedule(40)
+		timerCorpse:Start()
 	elseif	(msg == L.YellP4 or msg:find(L.YellP4)) and (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 		self:SetStage(4)
 		timerCorpse:Stop()
@@ -303,7 +298,6 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		FBTimer = 22
 		warnMindControl:Schedule(MCTimer - 5)
 		mindControlCD:Start(MCTimer)
-		timerPossibleMC:Schedule(MCTimer)
 		frostBlastCD:Start(FBTimer)
 	end
 end

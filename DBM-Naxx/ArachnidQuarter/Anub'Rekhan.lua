@@ -11,7 +11,8 @@ mod:EnableModel()
 mod:RegisterEvents(
 	"SPELL_CAST_START",
 	"SPELL_AURA_REMOVED",
-	"UNIT_DIED"
+	"UNIT_DIED",
+	"CHAT_MSG_RAID_BOSS_EMOTE"
 )
 
 local warningLocustSoon		= mod:NewSoonAnnounce(28785, 2)
@@ -28,11 +29,11 @@ mod:AddBoolOption("ArachnophobiaTimer", true, "timer")
 
 function mod:OnCombatStart(delay)
 	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
-		timerLocustIn:Start(90 - delay)
-		warningLocustSoon:Schedule(80 - delay)
+		timerLocustIn:Start(100 - delay)
+		warningLocustSoon:Schedule(95 - delay)
 	else
-		timerLocustIn:Start(91 - delay)
-		warningLocustSoon:Schedule(76 - delay)
+		timerLocustIn:Start(100 - delay)
+		warningLocustSoon:Schedule(95 - delay)
 	end
 end
 
@@ -40,7 +41,6 @@ function mod:SPELL_CAST_START(args)
 	if args:IsSpellID(28785, 54021) then  -- Locust Swarm
 		warningLocustNow:Show()
 		specialWarningLocust:Show()
-		timerLocustIn:Stop()
 		if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 			timerLocustFade:Start(26)
 		else
@@ -51,14 +51,14 @@ end
 
 function mod:SPELL_AURA_REMOVED(args)
 	if args:IsSpellID(28785, 54021) and args.auraType == "BUFF" then
-		if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
-			timerLocustIn:Start(67)
-			warningLocustSoon:Schedule(45)
-		else
-			timerLocustIn:Start()
-			warningLocustSoon:Schedule(62)
-		end
 		warningLocustFaded:Show()
+	end
+end
+
+function mod:CHAT_MSG_RAID_BOSS_EMOTE(msg)
+	if msg == L.Locus or msg:find(L.Locus) then
+		timerLocustIn:Start(90)
+		warningLocustSoon:Schedule(85)
 	end
 end
 

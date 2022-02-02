@@ -34,12 +34,6 @@ function mod:SPELL_CAST_SUCCESS(args)
 		embraceSpam = GetTime()
 		warnEmbraceExpire:Cancel()
 		warnEmbraceExpired:Cancel()
-		warnEnrageSoon:Cancel()
-		timerEnrage:Stop()
-		if enraged then
-			timerEnrage:Start(50)
-			warnEnrageSoon:Schedule(45)
-		end
 		timerEmbrace:Start()
 		warnEmbraceActive:Show()
 		warnEmbraceExpire:Schedule(25)
@@ -52,5 +46,7 @@ function mod:SPELL_AURA_APPLIED(args)
 	if args:IsSpellID(28798, 54100) then			-- Frenzy
 		warnEnrageNow:Show()
 		enraged = GetTime()
+		timerEnrage:Start(60)
+		warnEnrageSoon:Schedule(55)
 	end
 end

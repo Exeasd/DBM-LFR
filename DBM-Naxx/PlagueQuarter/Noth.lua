@@ -22,7 +22,7 @@ local warnBlinkSoon 	= mod:NewAnnounce("WarningBlinkSoon", 4, 29208)
 
 local timerTeleport		= mod:NewTimer(90, "TimerTeleport", 46573)
 local timerTeleportBack	= mod:NewTimer(70, "TimerTeleportBack", 46573)
-local timerBlink 		= mod:NewNextTimer(25, 29208)
+local timerBlink 		= mod:NewNextTimer(40, 29208)
 local warnBlink 		= mod:NewAnnounce("Blink Soon", 1)
 local announceBlink 	= mod:NewSpellAnnounce(29208, 4)
 
@@ -56,7 +56,7 @@ function mod:BackInRoom(delay)
 	elseif self.vb.phase == 2 then timer = 110 - delay
 	elseif self.vb.phase == 3 then timer = 180 - delay
 	else return end
-	timerBlink:Show(20 - delay)
+	timerBlink:Start(20 - delay)
 	warnBlinkSoon:Schedule(20 - delay)
 	timerTeleport:Show(timer)
 	warnTeleportSoon:Schedule(timer - 20)
@@ -68,10 +68,7 @@ function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(29213, 54835) then	-- Curse of the Plaguebringer
 		warnCurse:Show()
 	elseif args:IsSpellID(29208, 29209, 29210, 29211) then
-		if timerBlink:IsStarted() then
-			timerBlink:Update(39)
-		end
-		timerBlink:Show()
+		timerBlink:Start()
 	end
 end
 

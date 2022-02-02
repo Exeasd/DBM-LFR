@@ -28,11 +28,11 @@ local specWarnStaticField		= mod:NewSpecialWarningYou(57430, nil, nil, nil, 1, 2
 local specWarnStaticFieldNear	= mod:NewSpecialWarningClose(57430, nil, nil, nil, 1, 2)
 local yellStaticField			= mod:NewYellMe(57430)
 
-local enrageTimer				= mod:NewBerserkTimer(615)
+local enrageTimer				= mod:NewBerserkTimer(600)
 local timerSpark				= mod:NewTimer(30, "TimerSpark", 59381)
 local timerVortex				= mod:NewCastTimer(11, 56105)
 local timerVortexCD				= mod:NewNextTimer(60, 56105)
-local timerBreath				= mod:NewTimer(59, "TimerBreath", 60072)
+local timerBreath				= mod:NewTimer(30, "TimerBreath", 60072)
 local timerAchieve      		= mod:NewAchievementTimer(360, 1875, "TimerSpeedKill")
 local timerIntermission 		= mod:NewTimer(22, "Malygos Unattackable")
 local timerAttackable 			= mod:NewTimer(24, "Malygos Wipes Debuffs")
@@ -50,7 +50,8 @@ end
 function mod:OnCombatStart(delay)
 	enrageTimer:Start(-delay)
 	timerAchieve:Start(-delay)
-	timerVortexCD:Start(40)
+	timerVortexCD:Start(30 - delay)
+	warnVortexSoon:Schedule(25 - delay)
 	table.wipe(guids)
 	self:SetStage(1)
 end
@@ -159,6 +160,14 @@ function mod:SPELL_AURA_APPLIED(args)
 				specWarnSurge:Show()
 			end
 		end
+	elseif args:IsSpellID(55853, 56263) and self:AntiSpam (3,1) then
+		timerVortexCD:Start()
+		warnVortexSoon:Schedule(54)
+		warnVortex:Show()
+		timerVortex:Start()
+		if timerSpark:GetTime() < 11 and timerSpark:IsStarted() then
+			timerSpark:Update(18, 30)
+		end
 	end
 end
 
@@ -171,12 +180,12 @@ function mod:OnSync(event, arg)
 		timerVortexCD:Stop()
 		warnPhase2:Show()
 		timerIntermission:Start()
-		timerBreath:Start(92)
+		timerBreath:Start(60)
 	elseif event == "Breath" then
-		timerBreath:Schedule(1)
 		warnBreath:Schedule(1)
 	elseif event == "BreathSoon" then
 		warnBreathInc:Show()
+		timerBreath:Schedule(30)
 	elseif event == "Phase3" then
 		warnPhase3:Show()
 		self:Schedule(6, buildGuidTable)
