@@ -24,7 +24,8 @@ L:SetMiscLocalization({
 	ArachnophobiaTimer	= "Arachnophobia",
 	Yell1 				= "There is no way out.",
 	Yell2 				= "Just a little taste...",
-	Yell3 				= "Yes, run! It makes the blood pump faster!"
+	Yell3 				= "Yes, run! It makes the blood pump faster!",
+	Locus				= "Anub'Rekhan begins to unleash an insect swarm!"
 })
 
 ----------------------------
