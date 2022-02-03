@@ -299,5 +299,9 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		warnMindControl:Schedule(MCTimer - 5)
 		mindControlCD:Start(MCTimer)
 		frostBlastCD:Start(FBTimer)
+		if self.Options.EqUneqWeaponsKT and self:IsDps() then
+			self:ScheduleMethod(MCTimer - 2, "UnWKT")
+			self:ScheduleMethod(MCTimer - 1.5, "UnWKT")
+		end
 	end
 end
