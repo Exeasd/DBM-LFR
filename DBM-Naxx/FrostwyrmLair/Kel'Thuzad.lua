@@ -79,13 +79,9 @@ function mod:OnCombatStart(delay)
 	warnPhase2:Schedule(227)
 	self:ScheduleMethod(226, "StartPhase2")
 	self:SetStage(1)
-	if (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) or self:IsNormal() then
-		mindControlCD:Start(227 + 90 - delay)
-		warnMindControl:Schedule(227 + 85 - delay)
-		if self.Options.EqUneqWeaponsKT and self:IsDps() then
+	if self.Options.EqUneqWeaponsKT and self:IsDps() then
 			self:ScheduleMethod(227 + 85, "UnWKT")
 			self:ScheduleMethod(227.5 + 85, "UnWKT")
-		end
 	end
 	self:Schedule(227, DBM.RangeCheck.Show, DBM.RangeCheck, 12)
 end
@@ -121,6 +117,9 @@ end
 
 function mod:StartPhase2()
 	self:SetStage(2)
+	mindControlCD:Start(- delay)
+	warnMindControl:Schedule(85 - delay)
+	frostBlastCD:Start(40)
 end
 
 local frostBlastTargets = {}
@@ -286,6 +285,7 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		mindControlCD:Start()
 	elseif (msg == L.YellP3 or msg:find(L.YellP3)) and (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 		self:SetStage(3)
+		self:UnscheduleMethod("UnWKT")
 		mindControlCD:Stop()
 		frostBlastCD:Stop()
 		warnCorpse:Schedule(40)
