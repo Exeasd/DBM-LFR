@@ -234,7 +234,7 @@ function mod:SPELL_CAST_SUCCESS(args)
 end
 
 function mod:UNIT_HEALTH(uId)
-	if not warnedAdds and self:GetUnitCreatureId(uId) == 15990 and UnitHealth(uId) / UnitHealthMax(uId) <= 0.48 then
+	if not warnedAdds and self:GetUnitCreatureId(uId) == 15990 and UnitHealth(uId) / UnitHealthMax(uId) <= 0.48 and not (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 		warnedAdds = true
 		warnAddsSoon:Show()
 	end
@@ -285,9 +285,10 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		mindControlCD:Start()
 	elseif (msg == L.YellP3 or msg:find(L.YellP3)) and (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
 		self:SetStage(3)
-		self:UnscheduleMethod("UnWKT")
+		timerPossibleMC:Cancel()
 		mindControlCD:Stop()
 		frostBlastCD:Stop()
+		warnMindControl:Cancel()
 		warnCorpse:Schedule(40)
 		timerCorpse:Start()
 	elseif	(msg == L.YellP4 or msg:find(L.YellP4)) and (mod:IsDifficulty("heroic25") or mod:IsDifficulty("normal25")) then
@@ -298,6 +299,7 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		FBTimer = 22
 		warnMindControl:Schedule(MCTimer - 5)
 		mindControlCD:Start(MCTimer)
+		timerPossibleMC:Schedule(MCTimer)
 		frostBlastCD:Start(FBTimer)
 		if self.Options.EqUneqWeaponsKT and self:IsDps() then
 			self:ScheduleMethod(MCTimer - 2, "UnWKT")
